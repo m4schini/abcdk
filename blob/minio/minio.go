@@ -1,9 +1,9 @@
 package minio
 
 import (
-	"abcdk/model"
 	"context"
 	"fmt"
+	"github.com/m4schini/abcdk/model"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"io"
@@ -12,17 +12,7 @@ import (
 
 var baseUrl = fmt.Sprintf("https://s3.%v", model.BaseUrl)
 
-type Bucket struct {
-	client     *minio.Client
-	bucketName string
-}
-
-func ParseConnString(url *url.URL) (string, *credentials.Credentials, error) {
-	bucketName := url.Host
-	key := url.Query().Get("key")
-	secret := url.Query().Get("secret")
-	creds := credentials.NewStaticV4(key, secret, "")
-	return bucketName, creds, nil
+type Minio struct {
 }
 
 func NewConnstring(bucketName string, key, secret string) *url.URL {
@@ -33,6 +23,19 @@ func NewConnstring(bucketName string, key, secret string) *url.URL {
 	u.Query().Set("key", key)
 	u.Query().Set("secret", secret)
 	return u
+}
+
+func ParseConnString(url *url.URL) (string, *credentials.Credentials, error) {
+	bucketName := url.Host
+	key := url.Query().Get("key")
+	secret := url.Query().Get("secret")
+	creds := credentials.NewStaticV4(key, secret, "")
+	return bucketName, creds, nil
+}
+
+type Bucket struct {
+	client     *minio.Client
+	bucketName string
 }
 
 func OpenBucket(bucketName string, creds *credentials.Credentials) (*Bucket, error) {

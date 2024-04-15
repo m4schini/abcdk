@@ -1,4 +1,4 @@
-module abcdk
+module github.com/m4schini/abcdk
 
 go 1.22
 

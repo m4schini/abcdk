@@ -31,5 +31,4 @@ func OpenBucket(ctx context.Context, uri string) (Bucket, error) {
 	default:
 		return nil, model.ErrUnknownScheme
 	}
-
 }
