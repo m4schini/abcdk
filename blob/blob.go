@@ -1,9 +1,9 @@
 package blob
 
 import (
-	"abcdk/blob/minio"
-	"abcdk/model"
 	"context"
+	"github.com/m4schini/abcdk/blob/minio"
+	"github.com/m4schini/abcdk/model"
 	"io"
 	"net/url"
 )
