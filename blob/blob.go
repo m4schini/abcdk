@@ -3,14 +3,10 @@ package blob
 import (
 	"context"
 	"github.com/m4schini/abcdk/blob/minio"
-	"github.com/m4schini/abcdk/model"
+	"github.com/m4schini/abcdk/errors"
+	"github.com/m4schini/abcdk/internal/model"
 	"io"
 	"net/url"
-)
-
-const (
-	SchemeS3  = "s3"
-	SchemeMem = "mem"
 )
 
 type Bucket interface {
@@ -19,16 +15,15 @@ type Bucket interface {
 	Delete(ctx context.Context, key string) error
 }
 
-func OpenBucket(ctx context.Context, uri string) (Bucket, error) {
-	u, err := url.Parse(uri)
+func OpenBucket(driverUrl string) (Bucket, error) {
+	d, err := url.Parse(driverUrl)
 	if err != nil {
 		return nil, err
 	}
-	switch u.Scheme {
-	case SchemeS3:
-		bucketName, creds, _ := minio.ParseConnString(u)
-		return minio.OpenBucket(bucketName, creds)
+	switch d.Scheme {
+	case model.SchemeS3:
+		return minio.OpenBucket(d)
 	default:
-		return nil, model.ErrUnknownScheme
+		return nil, errors.ErrUnknownScheme
 	}
 }

@@ -1,8 +1,6 @@
-package model
+package errors
 
 import "fmt"
-
-var BaseUrl = "auroraborealis.cloud"
 
 var ErrUnknownScheme = fmt.Errorf("unknown scheme")
 var ErrNotImplemented = fmt.Errorf("not implemented")
