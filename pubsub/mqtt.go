@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	qos = 0
+	qos = 2
 )
 
 func openMqttTopic(ctx context.Context, driverUrl *url.URL) (Topic, error) {
