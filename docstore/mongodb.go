@@ -1,0 +1,37 @@
+package docstore
+
+import (
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"log"
+	"os"
+	"time"
+)
+
+func NewFromEnv(ctx context.Context) (*mongo.Client, context.CancelFunc, error) {
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("Set your 'MONGODB_URI' environment variable. " +
+			"See: " +
+			"www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+	}
+	return New(ctx, uri)
+}
+
+func New(ctx context.Context, mongodbUri string) (*mongo.Client, context.CancelFunc, error) {
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongodbUri))
+	if err != nil {
+		return nil, func() {}, err
+	}
+
+	pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	err = client.Ping(pingCtx, readpref.Primary())
+	return client, func() {
+		disconnectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		_ = client.Disconnect(disconnectCtx)
+	}, err
+}
