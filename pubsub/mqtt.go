@@ -3,7 +3,7 @@ package pubsub
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/m4schini/abcdk/internal/log"
+	"github.com/m4schini/abcdk/v2/internal/log"
 	"os"
 	"time"
 )
