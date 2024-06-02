@@ -22,7 +22,7 @@ func OpenBucket(driverUrl *url.URL) (*Bucket, error) {
 	}
 	b := new(Bucket)
 	b.client = c
-	b.bucketName = abc.Bucketname(driverUrl)
+	b.bucketName = abc.BucketName(driverUrl)
 	_, b.secure = abc.Endpoint(driverUrl)
 	return b, nil
 }

@@ -5,10 +5,14 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"github.com/m4schini/abcdk/internal/config"
+	"github.com/m4schini/abcdk/internal/model"
 	"net/url"
 )
 
-const DefaultProtocol = "tcp"
+const (
+	DefaultProtocol  = "tcp"
+	queryKeyProtocol = "protocol"
+)
 
 var (
 	cfg      = config.Config.Mqtt
@@ -24,7 +28,7 @@ func toPort(scheme string) int {
 }
 
 func Broker(driverUrl *url.URL) string {
-	protocol := driverUrl.Query().Get("protocol")
+	protocol := driverUrl.Query().Get(queryKeyProtocol)
 	if protocol == "" {
 		protocol = DefaultProtocol
 	}
@@ -55,4 +59,25 @@ func New(driverUrl *url.URL) (mqtt.Client, error) {
 		return nil, token.Error()
 	}
 	return client, nil
+}
+
+type Options struct {
+	Protocol string
+	Hostname string
+	Port     int
+}
+
+func (o Options) AsDriverUrl() *url.URL {
+	if o.Hostname == "" || o.Port == 0 {
+		return nil
+	}
+
+	u := &url.URL{
+		Scheme:  model.SchemeMqtt,
+		Host:    fmt.Sprintf("%v://%v:%v", o.Protocol, o.Hostname, o.Port),
+		Path:    "",
+		RawPath: "",
+	}
+
+	return u
 }

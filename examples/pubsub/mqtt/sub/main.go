@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	s, err := pubsub.OpenSubscription(context.TODO(), "mqtt:///test-topic")
+	s, err := pubsub.OpenSubscription(context.TODO(), "mqtt:///rea-wbm")
 	if err != nil {
 		panic(err)
 	}
