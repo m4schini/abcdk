@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-func NewFromEnv(ctx context.Context) (*mongo.Client, context.CancelFunc, error) {
+func FromEnv(ctx context.Context) (*mongo.Client, context.CancelFunc, error) {
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
 		return nil, func() {}, fmt.Errorf("MONGODB_URI required")
 	}
-	return New(ctx, uri)
+	return FromConnStr(ctx, uri)
 }
 
-func New(ctx context.Context, mongodbUri string) (*mongo.Client, context.CancelFunc, error) {
+func FromConnStr(ctx context.Context, mongodbUri string) (*mongo.Client, context.CancelFunc, error) {
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongodbUri))
 	if err != nil {
 		return nil, func() {}, err
