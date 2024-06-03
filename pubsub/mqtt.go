@@ -33,7 +33,7 @@ func FromConnStr(connStr string) (mqtt.Client, error) {
 	if conn.PingTimeout == 0 {
 		conn.PingTimeout = 3 * time.Second
 	}
-	addr := fmt.Sprintf("%v://%v", conn.Protocol, conn.Address)
+	addr := fmt.Sprintf("%v://%v:%v", conn.Protocol, conn.Address, conn.Port)
 	opts := mqtt.
 		NewClientOptions().
 		AddBroker(addr).
@@ -47,12 +47,12 @@ func FromConnStr(connStr string) (mqtt.Client, error) {
 	return c, nil
 }
 
-func FromEnv(clientId string) (mqtt.Client, error) {
-	brokerAddr := os.Getenv("MQTT_BROKER")
-	if brokerAddr == "" {
-		return nil, fmt.Errorf("MQTT_BROKER cannot be empty")
+func FromEnv() (mqtt.Client, error) {
+	connstr := os.Getenv("PUBUSUB_URI")
+	if connstr == "" {
+		return nil, fmt.Errorf("PUBUSUB_URI cannot be empty")
 	}
-	return New(clientId, brokerAddr)
+	return FromConnStr(connstr)
 }
 
 func SetLoggerDebug(print func(v ...interface{}), printf func(format string, v ...interface{})) {

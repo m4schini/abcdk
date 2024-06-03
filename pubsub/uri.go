@@ -82,6 +82,7 @@ func ParseConn(connectionString string) (conn ConnectionString, err error) {
 	switch len(hostParts) {
 	case 1:
 		conn.Address = hostParts[0]
+		conn.Port = Port(conn.Protocol)
 		break
 	case 2:
 		conn.Address = hostParts[0]
