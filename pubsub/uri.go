@@ -3,6 +3,7 @@ package pubsub
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -16,14 +17,19 @@ const (
 type Protocol string
 
 const (
-	ProtocolTcp = "tcp"
-	ProtocolSsl = "ssl"
-	ProtocolWs  = "ws"
-	ProtocolWss = "wss"
+	ProtocolTcp    Protocol = "tcp"
+	defaultPortTcp          = 1883
+	ProtocolSsl    Protocol = "ssl"
+	defaultPortSsl          = 8883
+	ProtocolWs     Protocol = "ws"
+	defaultPortWs           = 8083
+	ProtocolWss    Protocol = "wss"
+	defaultPortWss          = 8084
 )
 
 type ConnectionString struct {
 	Address     string
+	Port        int
 	Protocol    Protocol
 	ClientId    string
 	KeepAlive   time.Duration
@@ -34,9 +40,12 @@ func (c *ConnectionString) String() string {
 	if c.Protocol == "" {
 		c.Protocol = ProtocolTcp
 	}
+	if c.Port == 0 {
+		c.Port = Port(c.Protocol)
+	}
 	u := &url.URL{
 		Scheme: fmt.Sprintf("%v+%v", scheme, c.Protocol),
-		Host:   c.Address,
+		Host:   fmt.Sprintf("%v:%v", c.Address, c.Port),
 		User:   url.User(c.ClientId),
 	}
 	q := u.Query()
@@ -65,11 +74,26 @@ func ParseConn(connectionString string) (conn ConnectionString, err error) {
 		return conn, fmt.Errorf("invalid scheme")
 	}
 	if uProtocol == "" {
-		uProtocol = ProtocolTcp
+		uProtocol = string(ProtocolTcp)
+	}
+	conn.Protocol = Protocol(uProtocol)
+
+	hostParts := strings.Split(u.Host, ":")
+	switch len(hostParts) {
+	case 1:
+		conn.Address = hostParts[0]
+		break
+	case 2:
+		conn.Address = hostParts[0]
+		port, err := strconv.ParseInt(hostParts[1], 10, 32)
+		if err != nil {
+			return conn, err
+		}
+		conn.Port = int(port)
+	default:
+		return conn, fmt.Errorf("invalid host")
 	}
 
-	conn.Protocol = Protocol(uProtocol)
-	conn.Address = u.Host
 	conn.ClientId = u.User.Username()
 	if u.Query().Has(keepaliveQueryKey) {
 		d, err := time.ParseDuration(u.Query().Get(keepaliveQueryKey))
@@ -96,4 +120,18 @@ func ParseScheme(schemeStr string) (scheme, protocol string, err error) {
 	default:
 		return "", "", fmt.Errorf("invalid scheme")
 	}
+}
+
+func Port(protocol Protocol) int {
+	switch protocol {
+	case ProtocolTcp:
+		return defaultPortTcp
+	case ProtocolSsl:
+		return defaultPortSsl
+	case ProtocolWs:
+		return defaultPortWs
+	case ProtocolWss:
+		return defaultPortWss
+	}
+	return 0
 }

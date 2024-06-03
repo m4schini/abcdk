@@ -8,7 +8,7 @@ import (
 func TestConnectionString_String(t *testing.T) {
 	expected := ConnectionString{
 		Protocol:    ProtocolTcp,
-		Address:     "emqx.auroraborealis.cloud:1883",
+		Address:     "emqx.auroraborealis.cloud",
 		ClientId:    "test",
 		KeepAlive:   10 * time.Millisecond,
 		PingTimeout: 20 * time.Millisecond,
@@ -27,7 +27,11 @@ func TestConnectionString_String(t *testing.T) {
 		t.FailNow()
 	}
 	if actual.Address != expected.Address {
-		t.Log("failed")
+		t.Log("failed", expected.Address, actual.Address)
+		t.FailNow()
+	}
+	if actual.Port != expected.Port {
+		t.Log("failed", expected.Port, actual.Port)
 		t.FailNow()
 	}
 	if actual.ClientId != expected.ClientId {
