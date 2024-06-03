@@ -2,10 +2,10 @@ package docstore
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
 	"os"
 	"time"
 )
@@ -13,9 +13,7 @@ import (
 func NewFromEnv(ctx context.Context) (*mongo.Client, context.CancelFunc, error) {
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("Set your 'MONGODB_URI' environment variable. " +
-			"See: " +
-			"www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		return nil, func() {}, fmt.Errorf("MONGODB_URI required")
 	}
 	return New(ctx, uri)
 }
