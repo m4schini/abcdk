@@ -18,11 +18,11 @@ type client struct {
 	config ClientConfig
 }
 
-func New(s3 *minio.Client, db *mongo.Collection, config ClientConfig) Client {
+func New(s3 *minio.Client, db *mongo.Client, config ClientConfig) Client {
 	config = applyClientConfig(config)
 	c := new(client)
 	c.s3 = s3
-	c.db = db
+	c.db = db.Database(config.DatabaseName).Collection(config.CollectionName)
 	c.config = config
 	return c
 }
