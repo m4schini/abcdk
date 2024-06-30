@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 )
 
 type FSBuffer struct {
@@ -35,7 +36,7 @@ func NewFSBuffer(reader io.Reader) (*FSBuffer, error) {
 	digest := fmt.Sprintf("sha512:%x", sum)
 	return &FSBuffer{
 		Digest: digest,
-		Name:   name,
+		Name:   path.Join(os.TempDir(), name),
 		Size:   writtenBytes,
 	}, nil
 }
