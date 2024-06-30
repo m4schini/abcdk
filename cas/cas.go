@@ -2,61 +2,82 @@ package cas
 
 import (
 	"context"
+	"errors"
+	"github.com/m4schini/abcdk/v2/cas/internal/buffer"
 	"github.com/minio/minio-go/v7"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 )
 
-type Client interface {
-	Put(ctx context.Context, reader io.Reader, contentType string) (digest string, err error)
-	Get(ctx context.Context, digest string) (object io.ReadCloser, contentType string, err error)
+type Stat struct {
+	Digest      string              `bson:"digest"`
+	ContentType string              `bson:"contentType"`
+	MetaData    map[string][]string `bson:"metadata"`
 }
 
-type client struct {
-	s3     *minio.Client
-	db     *mongo.Collection
+type Storage interface {
+	Put(ctx context.Context, reader io.Reader, contentType string) (digest string, err error)
+	Get(ctx context.Context, digest string) (object io.ReadCloser, contentType string, err error)
+	Stat(ctx context.Context, digest string) (stat Stat, err error)
+}
+
+type Client struct {
+	S3     *minio.Client
+	DB     *mongo.Collection
 	config ClientConfig
 }
 
-func New(s3 *minio.Client, db *mongo.Client, config ClientConfig) Client {
+func New(s3 *minio.Client, db *mongo.Client, config ClientConfig) *Client {
 	config = applyClientConfig(config)
-	c := new(client)
-	c.s3 = s3
-	c.db = db.Database(config.DatabaseName).Collection(config.CollectionName)
+	c := new(Client)
+	c.S3 = s3
+	c.DB = db.Database(config.DatabaseName).Collection(config.CollectionName)
 	c.config = config
 	return c
 }
 
-func (c *client) Put(ctx context.Context, reader io.Reader, contentType string) (digest string, err error) {
+func (c *Client) Put(ctx context.Context, reader io.Reader, contentType string) (digest string, err error) {
 	var (
 		bucketName = c.config.BucketName
 	)
 
-	f, err := NewFSBuffer(reader)
+	f, err := buffer.NewFSBuffer(reader)
 	if err != nil {
 		return "", err
+	}
+	defer f.Delete()
+
+	count, err := c.DB.CountDocuments(ctx, bson.D{{"digest", f.Digest}})
+	if err != nil || count > 0 {
+		return f.Digest, err
 	}
 
 	r, err := f.Read()
 	if err != nil {
-		return "", err
+		return f.Digest, err
 	}
 	defer r.Close()
-	_, err = c.s3.PutObject(ctx, bucketName, f.Digest, r, f.Size, minio.PutObjectOptions{
+	_, err = c.S3.PutObject(ctx, bucketName, f.Digest, r, f.Size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
-		return "", err
+		return f.Digest, err
 	}
-	return f.Digest, nil
+
+	_, err = c.DB.InsertOne(ctx, Stat{
+		Digest:      f.Digest,
+		ContentType: contentType,
+	})
+	return f.Digest, err
 }
 
-func (c *client) Get(ctx context.Context, digest string) (object io.ReadCloser, contentType string, err error) {
+func (c *Client) Get(ctx context.Context, digest string) (object io.ReadCloser, contentType string, err error) {
 	var (
 		bucketName = c.config.BucketName
 	)
 
-	o, err := c.s3.GetObject(ctx, bucketName, digest, minio.GetObjectOptions{})
+	o, err := c.S3.GetObject(ctx, bucketName, digest, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, "", err
 	}
@@ -65,4 +86,33 @@ func (c *client) Get(ctx context.Context, digest string) (object io.ReadCloser, 
 		return nil, "", err
 	}
 	return o, stat.ContentType, nil
+}
+
+func (c *Client) Stat(ctx context.Context, digest string) (stat Stat, err error) {
+	err = c.Data(ctx, digest, &stat)
+	return stat, err
+}
+
+func (c *Client) Data(ctx context.Context, digest string, v any) (err error) {
+	r := c.DB.FindOne(ctx, bson.D{{"digest", digest}})
+	err = r.Err()
+	if err != nil {
+		return err
+	}
+
+	err = r.Decode(v)
+	return err
+}
+
+func GetWithStat(ctx context.Context, storage Storage, digest string) (object io.ReadCloser, stat Stat, err error) {
+	errCh := make(chan error)
+	go func() {
+		var err error
+		stat, err = storage.Stat(ctx, digest)
+		errCh <- err
+	}()
+
+	object, _, err = storage.Get(ctx, digest)
+	err = errors.Join(err, <-errCh)
+	return object, stat, err
 }

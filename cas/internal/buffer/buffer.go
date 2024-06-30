@@ -1,4 +1,4 @@
-package cas
+package buffer
 
 import (
 	"crypto/sha512"
