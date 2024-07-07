@@ -7,6 +7,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"io"
 )
 
@@ -48,11 +49,6 @@ func (c *Client) Put(ctx context.Context, reader io.Reader, contentType string) 
 	}
 	defer f.Delete()
 
-	count, err := c.DB.CountDocuments(ctx, bson.D{{"digest", f.Digest}})
-	if err != nil || count > 0 {
-		return f.Digest, err
-	}
-
 	r, err := f.Read()
 	if err != nil {
 		return f.Digest, err
@@ -65,10 +61,11 @@ func (c *Client) Put(ctx context.Context, reader io.Reader, contentType string) 
 		return f.Digest, err
 	}
 
-	_, err = c.DB.InsertOne(ctx, Stat{
+	opts := options.Update().SetUpsert(true)
+	_, err = c.DB.UpdateOne(ctx, bson.D{{"digest", f.Digest}}, bson.D{{"$set", Stat{
 		Digest:      f.Digest,
 		ContentType: contentType,
-	})
+	}}}, opts)
 	return f.Digest, err
 }
 
