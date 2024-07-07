@@ -48,25 +48,27 @@ func (c *Client) Put(ctx context.Context, reader io.Reader, contentType string) 
 		return "", err
 	}
 	defer f.Delete()
+	digest = f.Digest
 
 	r, err := f.Read()
 	if err != nil {
-		return f.Digest, err
+		return digest, err
 	}
 	defer r.Close()
-	_, err = c.S3.PutObject(ctx, bucketName, f.Digest, r, f.Size, minio.PutObjectOptions{
+	_, err = c.S3.PutObject(ctx, bucketName, digest, r, f.Size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
-		return f.Digest, err
+		return digest, err
 	}
 
 	opts := options.Update().SetUpsert(true)
-	_, err = c.DB.UpdateOne(ctx, bson.D{{"digest", f.Digest}}, bson.D{{"$set", Stat{
-		Digest:      f.Digest,
+	filter := bson.D{{"digest", digest}}
+	_, err = c.DB.UpdateOne(ctx, filter, bson.D{{"$set", Stat{
+		Digest:      digest,
 		ContentType: contentType,
 	}}}, opts)
-	return f.Digest, err
+	return digest, err
 }
 
 func (c *Client) Get(ctx context.Context, digest string) (object io.ReadCloser, contentType string, err error) {
