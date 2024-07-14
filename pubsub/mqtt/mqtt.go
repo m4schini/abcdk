@@ -1,9 +1,10 @@
-package pubsub
+package mqtt
 
 import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/m4schini/abcdk/v2/internal/log"
+	"github.com/m4schini/abcdk/v2/pubsub/uri"
 	"os"
 	"time"
 )
@@ -23,10 +24,14 @@ func New(clientId, broker string) (mqtt.Client, error) {
 }
 
 func FromConnStr(connStr string) (mqtt.Client, error) {
-	conn, err := ParseConn(connStr)
+	conn, err := uri.ParseConn(connStr)
 	if err != nil {
 		return nil, err
 	}
+	return FromConn(conn)
+}
+
+func FromConn(conn uri.ConnectionString) (mqtt.Client, error) {
 	if conn.KeepAlive == 0 {
 		conn.KeepAlive = 60 * time.Second
 	}
@@ -48,9 +53,15 @@ func FromConnStr(connStr string) (mqtt.Client, error) {
 }
 
 func FromEnv() (mqtt.Client, error) {
-	connstr := os.Getenv("PUBUSUB_URI")
+	connstr := os.Getenv("PUBSUB_URI")
 	if connstr == "" {
-		return nil, fmt.Errorf("PUBUSUB_URI cannot be empty")
+		connstr = os.Getenv("PUBUSUB_URI")
+		if connstr == "" {
+			return nil, fmt.Errorf("PUBSUB_URI cannot be empty")
+		} else {
+			fmt.Println("WARNING: PUBUSUB_URI is obsolete. Use PUBSUB_URI")
+		}
+
 	}
 	return FromConnStr(connstr)
 }

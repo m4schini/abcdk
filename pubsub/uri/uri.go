@@ -1,4 +1,4 @@
-package pubsub
+package uri
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	scheme              = "mqtt"
 	keepaliveQueryKey   = "keepalive"
 	pingTimeoutQueryKey = "pingTimeout"
 )
@@ -17,6 +16,8 @@ const (
 type Protocol string
 
 const (
+	SchemeMqtt              = "mqtt"
+	SchemeValkey            = "valkey"
 	ProtocolTcp    Protocol = "tcp"
 	defaultPortTcp          = 1883
 	ProtocolSsl    Protocol = "ssl"
@@ -30,6 +31,7 @@ const (
 type ConnectionString struct {
 	Address     string
 	Port        int
+	Scheme      string
 	Protocol    Protocol
 	ClientId    string
 	KeepAlive   time.Duration
@@ -37,14 +39,24 @@ type ConnectionString struct {
 }
 
 func (c *ConnectionString) String() string {
-	if c.Protocol == "" {
-		c.Protocol = ProtocolTcp
+	var scheme string
+	switch {
+	case c.Scheme == SchemeMqtt && c.Protocol == "":
+		scheme = fmt.Sprintf("%v+%v", c.Scheme, ProtocolTcp)
+		break
+	case c.Protocol == "":
+		scheme = c.Scheme
+		break
+	default:
+		scheme = fmt.Sprintf("%v+%v", c.Scheme, c.Protocol)
+		break
 	}
 	if c.Port == 0 {
 		c.Port = Port(c.Protocol)
 	}
+
 	u := &url.URL{
-		Scheme: fmt.Sprintf("%v+%v", scheme, c.Protocol),
+		Scheme: scheme,
 		Host:   fmt.Sprintf("%v:%v", c.Address, c.Port),
 		User:   url.User(c.ClientId),
 	}
@@ -70,9 +82,10 @@ func ParseConn(connectionString string) (conn ConnectionString, err error) {
 	if err != nil {
 		return conn, err
 	}
-	if uScheme != scheme {
+	if uScheme != SchemeMqtt && uScheme != SchemeValkey {
 		return conn, fmt.Errorf("invalid scheme")
 	}
+	conn.Scheme = uScheme
 	if uProtocol == "" {
 		uProtocol = string(ProtocolTcp)
 	}
