@@ -1,4 +1,4 @@
-module github.com/m4schini/abcdk/v2
+module github.com/m4schini/abcdk/v3
 
 go 1.23.0
 
