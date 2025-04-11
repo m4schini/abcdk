@@ -2,8 +2,8 @@ package graph
 
 import (
 	"context"
-	"github.com/m4schini/abcdk/v2/errors"
-	"github.com/m4schini/abcdk/v2/internal/consts"
+	"github.com/m4schini/abcdk/v3/errors"
+	"github.com/m4schini/abcdk/v3/internal/consts"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"go.uber.org/zap"
 	"os"

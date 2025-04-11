@@ -2,7 +2,7 @@ package errors
 
 import (
 	"fmt"
-	"github.com/m4schini/abcdk/v2/internal/consts"
+	"github.com/m4schini/abcdk/v3/internal/consts"
 )
 
 var (

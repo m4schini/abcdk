@@ -3,7 +3,7 @@ package telemetry
 import (
 	"context"
 	"errors"
-	"github.com/m4schini/abcdk/v2/internal/consts"
+	"github.com/m4schini/abcdk/v3/internal/consts"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"

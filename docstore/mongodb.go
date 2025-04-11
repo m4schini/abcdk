@@ -2,8 +2,8 @@ package docstore
 
 import (
 	"context"
-	"github.com/m4schini/abcdk/v2/errors"
-	"github.com/m4schini/abcdk/v2/internal/consts"
+	"github.com/m4schini/abcdk/v3/errors"
+	"github.com/m4schini/abcdk/v3/internal/consts"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
