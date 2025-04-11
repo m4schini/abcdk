@@ -9,6 +9,7 @@ func TestErrorIsEnvarIsMissing(t *testing.T) {
 	errs := []error{
 		ErrDocstoreEnvVarIsMissing,
 		ErrGraphEnvVarIsMissing,
+		ErrS3EnvVarIsMissing,
 	}
 	for _, err := range errs {
 		t.Log(err.Error())

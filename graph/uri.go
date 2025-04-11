@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"github.com/m4schini/abcdk/v3/errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/url"
 	"strconv"
@@ -39,7 +40,7 @@ func ParseConn(connectionString string) (conn ConnectionString, err error) {
 	}
 
 	if u.Scheme != scheme {
-		return conn, fmt.Errorf("invalid scheme")
+		return conn, errors.ErrUnexpectedSchema
 	}
 
 	conn.Host = u.Host
