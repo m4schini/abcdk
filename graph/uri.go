@@ -3,13 +3,13 @@ package graph
 import (
 	"fmt"
 	"github.com/m4schini/abcdk/v3/errors"
+	"github.com/m4schini/abcdk/v3/internal/consts"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"net/url"
 	"strconv"
 )
 
 const (
-	scheme             = "neo4j"
 	accessModeQueryKey = "accessMode"
 )
 
@@ -22,7 +22,7 @@ type ConnectionString struct {
 
 func (c *ConnectionString) String() string {
 	u := url.URL{
-		Scheme: scheme,
+		Scheme: consts.SchemeGraph,
 		User:   url.UserPassword(c.Username, c.Password),
 		Host:   c.Host,
 	}
@@ -39,7 +39,7 @@ func ParseConn(connectionString string) (conn ConnectionString, err error) {
 		return conn, err
 	}
 
-	if u.Scheme != scheme {
+	if u.Scheme != consts.SchemeGraph {
 		return conn, errors.ErrUnexpectedSchema
 	}
 

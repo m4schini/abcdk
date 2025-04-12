@@ -1,6 +1,9 @@
 package docstore
 
-import "net/url"
+import (
+	"github.com/m4schini/abcdk/v3/internal/consts"
+	"net/url"
+)
 
 type ConnectionString struct {
 	Server   string
@@ -10,7 +13,7 @@ type ConnectionString struct {
 
 func (c *ConnectionString) String() string {
 	u := url.URL{
-		Scheme: "mongodb",
+		Scheme: consts.SchemeDocstore,
 		User:   url.UserPassword(c.Username, c.Password),
 		Host:   c.Server,
 	}

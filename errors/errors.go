@@ -10,6 +10,7 @@ var (
 	ErrDocstoreEnvVarIsMissing = fmt.Errorf("%w: %v", ErrEnvVarIsMissing, consts.DocstoreEnvVarName)
 	ErrGraphEnvVarIsMissing    = fmt.Errorf("%w: %v", ErrEnvVarIsMissing, consts.GraphEnvVarName)
 	ErrS3EnvVarIsMissing       = fmt.Errorf("%w: %v", ErrEnvVarIsMissing, consts.S3EnvVarName)
+	ErrKVEnvVarIsMissing       = fmt.Errorf("%w: %v", ErrEnvVarIsMissing, consts.KVEnvVarName)
 
 	ErrUnexpectedSchema  = fmt.Errorf("unexpected schema")
 	ErrConnStrIncomplete = fmt.Errorf("conn str is incomplete")

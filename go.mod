@@ -7,6 +7,7 @@ toolchain go1.24.2
 require (
 	github.com/minio/minio-go/v7 v7.0.90
 	github.com/neo4j/neo4j-go-driver/v5 v5.28.0
+	github.com/valkey-io/valkey-go v1.0.57
 	go.mongodb.org/mongo-driver v1.17.3
 	go.opentelemetry.io/contrib/bridges/otelzap v0.10.0
 	go.opentelemetry.io/otel v1.35.0
